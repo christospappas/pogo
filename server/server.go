@@ -33,14 +33,13 @@ func (s *Server) On(event string, handler Handler) {
 }
 
 func (s *Server) HandleSubscribe(chanName string, c *Client) {
+	s.chanLock.Lock()
+	defer s.chanLock.Unlock()
 
 	if ch, ok := s.channels[chanName]; ok {
 		log.Println("[pogo] Adding Client to Channel: " + chanName)
 		ch.Subscribe(c)
 	} else {
-		s.chanLock.Lock()
-		defer s.chanLock.Unlock()
-
 		log.Println("[pogo] Creating new Channel: " + chanName)
 		ch := NewChannel(chanName)
 		s.channels[chanName] = ch
