@@ -11,7 +11,10 @@ Make your API realtime.
 `var websocket = new WebSocket("ws://localhost:8080");`
 
 ##### Subscribe to a channel
-`websocket.send(JSON.stringify({event: "streama:subscribe", data: {channel: '/courses/23423423'}}));`
+`websocket.send(JSON.stringify({event: "channel:subscribe", channel: '/courses/23423423'}));`
+
+##### Unsubscribe from a channel
+`websocket.send(JSON.stringify({event: "channel:unsubscribe", channel: '/courses/23423423'}));`
 
 ##### Send an event to a channel
 `websocket.send(JSON.stringify({event: "someEvent", channel: '/courses/23423423', data: {test: ''}}));`

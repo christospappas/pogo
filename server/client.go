@@ -95,11 +95,9 @@ func (c *Client) processMessage(msg *Message) {
 	log.Println("[pogo] Command: " + msg.Event)
 	switch msg.Event {
 	case "channel:subscribe":
-		chanName := msg.Data["channel"].(string)
-		c.server.HandleSubscribe(chanName, c)
+		c.server.HandleSubscribe(msg.Channel, c)
 	case "channel:unsubscribe":
-		chanName := msg.Data["channel"].(string)
-		c.server.HandleUnsubscribe(chanName, c)
+		c.server.HandleUnsubscribe(msg.Channel, c)
 	default:
 		c.server.HandleMessage(msg, c)
 	}

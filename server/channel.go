@@ -1,7 +1,6 @@
 package pogo
 
 import (
-	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -33,7 +32,6 @@ func (ch *Channel) Subscribe(c *Client) {
 		ch.subscribers[c.id] = Subscription{c, time.Now()}
 		c.subscriptions[ch.name] = ch
 	}
-	fmt.Println(ch.subscribers)
 }
 
 func (ch *Channel) Unsubscribe(c *Client) {
@@ -46,7 +44,6 @@ func (ch *Channel) Unsubscribe(c *Client) {
 	} else {
 		log.Println("[pogo] Client not found in channel: " + ch.name)
 	}
-	fmt.Println(ch.subscribers)
 }
 
 func (ch *Channel) SubscriberCount() int {
