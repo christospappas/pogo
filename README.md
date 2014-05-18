@@ -33,6 +33,7 @@ Make your API realtime.
 - Security filters such as ip blacklisting/rate limiting
 - Web Interface for configuring REST endpoints
 - Libraries to integrate push into apps
+- Clustering support
 
 
 ## Streaming REST protocol
