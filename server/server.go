@@ -65,11 +65,22 @@ func (s *Server) HandleUnsubscribe(chanName string, c *Client) {
 }
 
 func (s *Server) HandleMessage(msg *Message, c *Client) {
-	if fn, ok := s.handlers[msg.Event]; ok {
-		fn(msg, c)
-	} else {
-		log.Println("[pogo] No Event found: " + msg.Event)
+
+	log.Println("[pogo] Command: " + msg.Event)
+
+	switch msg.Event {
+	case "channel:subscribe":
+		c.server.HandleSubscribe(msg.Channel, c)
+	case "channel:unsubscribe":
+		c.server.HandleUnsubscribe(msg.Channel, c)
+	default:
+		if fn, ok := s.handlers[msg.Event]; ok {
+			fn(msg, c)
+		} else {
+			log.Println("[pogo] No Event found: " + msg.Event)
+		}
 	}
+
 }
 
 func (s *Server) HandleDisconnect(c *Client) {

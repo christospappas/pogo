@@ -84,23 +84,8 @@ func (c *Client) reader() {
 				c.doneCh <- true
 				return
 			} else {
-				c.processMessage(&msg)
+				c.server.HandleMessage(&msg, c)
 			}
 		}
 	}
-}
-
-// Need to handle errors here
-func (c *Client) processMessage(msg *Message) {
-	log.Println("[pogo] Command: " + msg.Event)
-	switch msg.Event {
-	case "channel:subscribe":
-		c.server.HandleSubscribe(msg.Channel, c)
-	case "channel:unsubscribe":
-		c.server.HandleUnsubscribe(msg.Channel, c)
-	default:
-		c.server.HandleMessage(msg, c)
-	}
-
-	return
 }
