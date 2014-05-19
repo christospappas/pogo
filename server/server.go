@@ -4,10 +4,10 @@ import (
 	"code.google.com/p/go.net/websocket"
 	"log"
 	"net/http"
-	"reflect"
 	"sync"
 )
 
+// Server maintains the connected clients, channels and handlers
 type Server struct {
 	pattern  string
 	clients  map[string]*Client
@@ -19,7 +19,9 @@ type Server struct {
 // Handler can be any callable function.
 type Handler func(msg *Message, c *Client)
 
+// Creates new server for specified pattern.
 func NewServer(pattern string) *Server {
+
 	log.Println("Starting pogo " + Version())
 	clients := make(map[string]*Client)
 	channels := make(map[string]Channel)
@@ -28,7 +30,6 @@ func NewServer(pattern string) *Server {
 }
 
 func (s *Server) On(event string, handler Handler) {
-	validateHandler(handler)
 	s.handlers[event] = handler
 }
 
@@ -83,6 +84,7 @@ func (s *Server) HandleMessage(msg *Message, c *Client) {
 
 }
 
+// Disconnects a client from all channels and the server
 func (s *Server) HandleDisconnect(c *Client) {
 	for _, ch := range c.subscriptions {
 		ch.Unsubscribe(c)
@@ -113,10 +115,4 @@ func (s *Server) Listen() {
 
 	http.Handle(s.pattern, websocket.Handler(onConnected))
 
-}
-
-func validateHandler(handler Handler) {
-	if reflect.TypeOf(handler).Kind() != reflect.Func {
-		panic("[pogo] handler must be a callable func")
-	}
 }
