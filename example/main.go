@@ -1,26 +1,42 @@
 package main
 
 import (
-	"fmt"
+	"github.com/christospappas/pogo"
 	"github.com/christospappas/pogo/server"
-	"net/http"
+	"log"
 )
 
 func main() {
-	// TODO: Allow multiple endpoints on the same server
-	s := pogo.NewServer("/")
 
-	// TODO: bind to channel events
-	// s.Channel("/posts/:id").On("update", func(..
-	s.On("someEvent", func(msg *pogo.Message, c *pogo.Client) { // figure out how to inject
-		// TODO: s.Channel("blah").Broadcast(msg)
-		fmt.Println("someEvent recieved!")
+	pogo.Namespace("/analytics", func(t *server.Namespace) {
+
+		t.On("track", func(msg *server.Message, c *server.Client) {
+			log.Println("oooh we received a track event")
+		})
+
+		t.On("version", func(msg *server.Message, c *server.Client) {
+			log.Println("this is version 1234")
+		})
+
+		t.On("sendAll", func(msg *server.Message, c *server.Client) {
+			log.Println("OMG! Sending woohoo!...")
+		})
+
 	})
 
-	s.Listen()
+	// TODO: Pattern based channel & Event matching
+	// pogo.Channel("/posts/:id").On("msg", func(msg *server.Message, c *server.Client) {
 
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		panic("ListenAndServe: " + err.Error())
-	}
+	// })
+
+	pogo.On("track", func(msg *server.Message, c *server.Client) {
+		log.Println("oooh we received a track event on / ")
+	})
+
+	pogo.On("sendAll", func(msg *server.Message, c *server.Client) {
+		log.Println("Sending woohoo!...")
+	})
+
+	pogo.Listen()
+
 }

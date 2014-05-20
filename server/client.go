@@ -1,4 +1,4 @@
-package pogo
+package server
 
 import (
 	"code.google.com/p/go-uuid/uuid"
@@ -10,13 +10,13 @@ import (
 const chanBufferSize = 100
 
 type Client struct {
-	id            string
-	ws            *websocket.Conn
-	server        *Server
-	ch            chan *Message
-	subscriptions map[string]*Channel
-	data          map[string]interface{}
-	doneCh        chan bool
+	id      string
+	ws      *websocket.Conn
+	server  *Server
+	sockets map[string]*Socket
+	ch      chan *Message
+	data    map[string]interface{}
+	doneCh  chan bool
 }
 
 func NewClient(ws *websocket.Conn, server *Server) *Client {
@@ -24,19 +24,20 @@ func NewClient(ws *websocket.Conn, server *Server) *Client {
 
 	return &Client{
 		uuid.New(), ws, server,
+		make(map[string]*Socket),
 		make(chan *Message, chanBufferSize),
-		make(map[string]*Channel),
 		make(map[string]interface{}),
 		make(chan bool),
 	}
 }
 
-func (c *Client) Conn() *websocket.Conn {
-	return c.ws
+func (c *Client) Connect(namespace string) {
+	log.Println("[pogo] Client Connected [" + namespace + "]: " + c.id)
+	ns := c.server.Of(namespace)
+	ns.Connect(c)
 }
 
 func (c *Client) Listen() {
-	log.Println("[pogo] Client Connected: " + c.id)
 	go c.writer()
 	c.reader()
 }
@@ -46,6 +47,25 @@ func (c *Client) Send(msg *Message) {
 	case c.ch <- msg:
 	default:
 		log.Println("Client is disconnected: " + c.id)
+	}
+}
+
+// Disconnects a client from all channels and the server
+func (c *Client) OnClose() {
+	// for _, ch := range c.subscriptions {
+	// 	ch.Unsubscribe(c)
+	// }
+	log.Println("[pogo] Client Disconnected: " + c.id)
+}
+
+// forward message to appropriate socket handler
+func (c *Client) OnData(msg *Message) {
+	if msg.Event != "pogo:connect" && msg.Namespace != "" {
+		if socket, ok := c.sockets[msg.Namespace]; ok {
+			socket.OnData(msg)
+		}
+	} else {
+		c.sockets["/"].OnData(msg)
 	}
 
 }
@@ -60,7 +80,7 @@ func (c *Client) writer() {
 				log.Println("[pogo] Error sending message")
 			}
 		case <-c.doneCh:
-			c.server.HandleDisconnect(c)
+			c.OnClose()
 			c.doneCh <- true
 			return
 		}
@@ -72,7 +92,7 @@ func (c *Client) reader() {
 	for {
 		select {
 		case <-c.doneCh:
-			c.server.HandleDisconnect(c)
+			c.OnClose()
 			c.doneCh <- true
 			return
 		default:
@@ -84,7 +104,7 @@ func (c *Client) reader() {
 				c.doneCh <- true
 				return
 			} else {
-				c.server.HandleMessage(&msg, c)
+				c.OnData(&msg)
 			}
 		}
 	}
