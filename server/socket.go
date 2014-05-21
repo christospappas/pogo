@@ -5,17 +5,25 @@ import (
 )
 
 type Socket struct {
+	id            string
 	client        *Client
 	namespace     *Namespace
 	subscriptions map[string]*Channel
 }
 
 func NewSocket(c *Client, ns *Namespace) *Socket {
-	return &Socket{c, ns, make(map[string]*Channel)}
+	return &Socket{c.id, c, ns, make(map[string]*Channel)}
 }
 
 func (s *Socket) Send(msg *Message) {
 
+}
+
+func (s *Socket) Disconnect() {
+	for _, ch := range s.subscriptions {
+		ch.Unsubscribe(s)
+	}
+	s.namespace = nil
 }
 
 func (s *Socket) subscribe(chanName string) {
@@ -24,10 +32,10 @@ func (s *Socket) subscribe(chanName string) {
 		ch.Subscribe(s)
 	} else {
 		log.Println("[pogo] Creating new Channel: " + chanName)
-		ch := s.namespace.CreateChannel(chanName)
+		ch := NewChannel(chanName)
+		s.namespace.AddChannel(ch)
 		ch.Subscribe(s)
 	}
-
 }
 
 func (s *Socket) unsubscribe(chanName string) {
@@ -44,10 +52,6 @@ func (s *Socket) OnData(msg *Message) {
 	log.Println("[pogo] Command: " + msg.Event)
 
 	switch msg.Event {
-	case "pogo:connect":
-		s.client.Connect(msg.Namespace)
-	case "pogo:disconnect":
-		// s.OnDisconnect(msg.Namespace)
 	case "pogo:subscribe":
 		s.subscribe(msg.Channel)
 	case "pogo:unsubscribe":
@@ -59,8 +63,4 @@ func (s *Socket) OnData(msg *Message) {
 			log.Println("[pogo] No Event found: " + msg.Event)
 		}
 	}
-}
-
-func (s *Socket) close() {
-
 }

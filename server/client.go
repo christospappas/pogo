@@ -5,18 +5,20 @@ import (
 	"code.google.com/p/go.net/websocket"
 	"io"
 	"log"
+	"sync"
 )
 
 const chanBufferSize = 100
 
 type Client struct {
-	id      string
-	ws      *websocket.Conn
-	server  *Server
-	sockets map[string]*Socket
-	ch      chan *Message
-	data    map[string]interface{}
-	doneCh  chan bool
+	id       string
+	ws       *websocket.Conn
+	server   *Server
+	sockets  map[string]*Socket
+	ch       chan *Message
+	data     map[string]interface{}
+	doneCh   chan bool
+	sockLock *sync.Mutex
 }
 
 func NewClient(ws *websocket.Conn, server *Server) *Client {
@@ -28,13 +30,26 @@ func NewClient(ws *websocket.Conn, server *Server) *Client {
 		make(chan *Message, chanBufferSize),
 		make(map[string]interface{}),
 		make(chan bool),
+		&sync.Mutex{},
 	}
 }
 
 func (c *Client) Connect(namespace string) {
+	c.sockLock.Lock()
+	defer c.sockLock.Unlock()
+
 	log.Println("[pogo] Client Connected [" + namespace + "]: " + c.id)
 	ns := c.server.Of(namespace)
-	ns.Connect(c)
+	socket := ns.AddClient(c)
+	c.sockets[ns.name] = socket
+}
+
+func (c *Client) Disconnect(namespace string) {
+	c.sockLock.Lock()
+	defer c.sockLock.Unlock()
+	socket := c.sockets[namespace]
+	socket.Disconnect()
+	delete(c.sockets, namespace)
 }
 
 func (c *Client) Listen() {
@@ -50,22 +65,30 @@ func (c *Client) Send(msg *Message) {
 	}
 }
 
-// Disconnects a client from all channels and the server
-func (c *Client) OnClose() {
-	// for _, ch := range c.subscriptions {
-	// 	ch.Unsubscribe(c)
-	// }
-	log.Println("[pogo] Client Disconnected: " + c.id)
+func (c *Client) onClose() {
+	log.Println("Client Disconnected: " + c.id)
+	for _, socket := range c.sockets {
+		socket.Disconnect()
+	}
 }
 
 // forward message to appropriate socket handler
-func (c *Client) OnData(msg *Message) {
-	if msg.Event != "pogo:connect" && msg.Namespace != "" {
-		if socket, ok := c.sockets[msg.Namespace]; ok {
-			socket.OnData(msg)
+func (c *Client) onData(msg *Message) {
+	switch msg.Event {
+	case "pogo:connect":
+		c.Connect(msg.Namespace)
+	case "pogo:disconnect":
+		c.Disconnect(msg.Namespace)
+	default:
+		if msg.Namespace != "" {
+			if socket, ok := c.sockets[msg.Namespace]; ok {
+				socket.OnData(msg)
+			} else {
+				// namespace doesn't exist
+			}
+		} else {
+			c.sockets["/"].OnData(msg)
 		}
-	} else {
-		c.sockets["/"].OnData(msg)
 	}
 
 }
@@ -80,7 +103,7 @@ func (c *Client) writer() {
 				log.Println("[pogo] Error sending message")
 			}
 		case <-c.doneCh:
-			c.OnClose()
+			c.onClose()
 			c.doneCh <- true
 			return
 		}
@@ -92,7 +115,7 @@ func (c *Client) reader() {
 	for {
 		select {
 		case <-c.doneCh:
-			c.OnClose()
+			c.onClose()
 			c.doneCh <- true
 			return
 		default:
@@ -104,7 +127,7 @@ func (c *Client) reader() {
 				c.doneCh <- true
 				return
 			} else {
-				c.OnData(&msg)
+				c.onData(&msg)
 			}
 		}
 	}

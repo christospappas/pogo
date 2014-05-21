@@ -8,17 +8,17 @@ import (
 
 func main() {
 
-	pogo.Namespace("/analytics", func(t *server.Namespace) {
+	pogo.Namespace("/analytics", func(ns *server.Namespace) {
 
-		t.On("track", func(msg *server.Message, c *server.Client) {
-			log.Println("oooh we received a track event")
+		ns.On("track", func(msg *server.Message, c *server.Client) {
+			// ns.Channel("something").Send("")
 		})
 
-		t.On("version", func(msg *server.Message, c *server.Client) {
+		ns.On("version", func(msg *server.Message, c *server.Client) {
 			log.Println("this is version 1234")
 		})
 
-		t.On("sendAll", func(msg *server.Message, c *server.Client) {
+		ns.On("sendAll", func(msg *server.Message, c *server.Client) {
 			log.Println("OMG! Sending woohoo!...")
 		})
 
