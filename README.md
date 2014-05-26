@@ -36,7 +36,7 @@ Make your API realtime.
 - Clustering support
 
 
-## Streaming REST protocol
+## Streaming API
 
 This is a work in progress...
 
@@ -47,7 +47,7 @@ This is a work in progress...
 ###### Request
 
     {
-        seqId: 1,
+        id: 1,
         event: "auth", 
         data: {
             token: '7879a3aa5783ba49e89fb2ee3a27480c96c4e6ce'
@@ -57,7 +57,7 @@ This is a work in progress...
 ###### Response
 
     {
-        seqId: 1,
+        id: 1,
         status: 'ok',
         data: {
             expires: 1400382523
@@ -70,23 +70,23 @@ This is a work in progress...
 ###### Request
 
     {
-        seqId: 1,    
+        id: 1,    
         event: "bind", 
-        path: '/posts/1234'
+        uri: '/posts/1234'
     }
     
 ###### Response
 
     {
-        seqId: 1,
+        id: 1,
         status: 'ok'
     }
     
 ---
 
     {
-        event: "response",
-        path: '/posts/1234',
+        event: "update",
+        uri: '/posts/1234',
         data: {
             ...
         }
@@ -97,54 +97,67 @@ This is a work in progress...
 ###### Request
 
     {
-        seqId: 1,
+        id: 1,
         event: "unbind", 
-        path: '/posts/1234'
+        uri: '/posts/1234'
     }
     
 ###### Response
 
     {
-        seqId: 1,
+        id: 1,
         status: 'ok'
     }
 
-#### GET
+#### LIST
 
 ###### Request
 
     {
-        seqId: 1,
-        event: "get", 
-        path: '/posts/1234'
+        id: 1,
+        event: "list", 
+        uri: '/posts'
     }    
     
 ###### Response
 
     {
-        event: "streama:response",
-        path: '/posts/1234',
+        id: 1,
+        status: 'ok'
         data: {
             ...
         }
     }
 
----
 
-    {
-        seqId: 1,
-        status: 'ok'
-    }
-    
-
-#### POST
+#### RETRIEVE
 
 ###### Request
 
     {
-        seqId: 1,
-        event: "post",
-        path: '/posts', 
+        id: 1,
+        event: "retrieve", 
+        uri: '/posts/1234'
+    }    
+    
+###### Response
+
+    {
+        id: 1,
+        status: 'ok'
+        data: {
+            ...
+        }
+    }
+
+#### CREATE
+
+###### Request
+
+    {
+        id: 1,
+        event: "create",
+        uri: '/posts', 
         data: {
             title: 'Post title',
             ...
@@ -154,30 +167,22 @@ This is a work in progress...
 ###### Response
 
     {
-        event: "response", 
-        path: '/posts',
-        status: 201,
+        id: 1,
+        status: 'ok',
         data: {
             ...
         }
     }
     
----
 
-    {
-        seqId: 1,
-        status: 'ok'
-    }
-    
-    
-#### PUT
+#### UPDATE
 
 ###### Request
 
     {
-        seqId: 1,
-        event: "put", 
-        path: '/posts/1234', 
+        id: 1,
+        event: "update", 
+        uri: '/posts/1234', 
         data: {
             title: 'Post title',
             ...
@@ -187,17 +192,7 @@ This is a work in progress...
 ###### Response
     
     {
-        event: "response", 
-        path: '/posts',
-        data: {
-            ...
-        }
-    }
-
----
-
-    {
-        seqId: 1,
+        id: 1,
         status: 'ok'
     }
     
@@ -206,9 +201,9 @@ This is a work in progress...
 ###### Request
 
     {
-        seqId: 1,
+        id: 1,
         event: "delete", 
-        path: '/posts/1234', 
+        uri: '/posts/1234', 
         data: {
             title: 'Post title',
             ...
@@ -219,7 +214,7 @@ This is a work in progress...
 
 
     {
-        seqId: 1,
+        id: 1,
         status: 'ok'
     }
     
