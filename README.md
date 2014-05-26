@@ -109,13 +109,13 @@ This is a work in progress...
         status: 'ok'
     }
 
-#### LIST
+#### INDEX
 
 ###### Request
 
     {
         id: 1,
-        event: "list", 
+        event: "index", 
         uri: '/posts'
     }    
     
@@ -130,13 +130,13 @@ This is a work in progress...
     }
 
 
-#### RETRIEVE
+#### SHOW
 
 ###### Request
 
     {
         id: 1,
-        event: "retrieve", 
+        event: "show", 
         uri: '/posts/1234'
     }    
     
