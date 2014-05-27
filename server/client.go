@@ -10,6 +10,9 @@ import (
 
 const chanBufferSize = 100
 
+// A client represents a connection and
+// maintains a list of namespaced socket handlers.
+// It handles sending/receiving data from a websocket connection.
 type Client struct {
 	id       string
 	ws       *websocket.Conn
@@ -34,6 +37,7 @@ func NewClient(ws *websocket.Conn, server *Server) *Client {
 	}
 }
 
+// creates a new socket for a specified namespace
 func (c *Client) Connect(namespace string) {
 	c.sockLock.Lock()
 	defer c.sockLock.Unlock()
@@ -44,6 +48,7 @@ func (c *Client) Connect(namespace string) {
 	c.sockets[ns.name] = socket
 }
 
+// disconnects from a namespace
 func (c *Client) Disconnect(namespace string) {
 	c.sockLock.Lock()
 	defer c.sockLock.Unlock()
