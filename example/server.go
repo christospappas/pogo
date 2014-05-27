@@ -29,6 +29,22 @@ func main() {
 
 	// })
 
+	// pogo.Resource("posts", postsController)
+
+	// pogo.Create("/posts")
+
+	// pogo.Update("/posts/{id}", func(msg *server.Message, c *server.Client) {
+
+	// })
+
+	// pogo.Retrieve("/posts/{id}", func(msg *server.Message, c *server.Client) {
+
+	// })
+
+	// pogo.List("/posts", func(msg *server.Message, c *server.Client) {
+
+	// })
+
 	pogo.On("track", func(msg *server.Message, c *server.Client) {
 		log.Println("oooh we received a track event on / ")
 	})
