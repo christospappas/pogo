@@ -29,6 +29,10 @@ func (r *router) Create(pattern string, handler Handler) {
 	r.AddRoute("create", pattern, handler)
 }
 
+func (r *router) Delete(pattern string, handler Handler) {
+	r.AddRoute("delete", pattern, handler)
+}
+
 // Add a new route to the Router
 func (r *router) AddRoute(method string, pattern string, handler interface{}) {
 
