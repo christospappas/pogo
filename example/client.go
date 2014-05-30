@@ -29,7 +29,12 @@ func main() {
 			return
 		}
 
-		client.Emit(line)
+		switch line {
+		case "exit":
+			return
+		default:
+			client.Emit(line)
+		}
 	}
 
 }
