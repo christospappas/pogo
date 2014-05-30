@@ -9,6 +9,7 @@ Usage example:
 package server
 
 import (
+	"code.google.com/p/go.net/websocket"
 	"log"
 	"sync"
 )
@@ -41,5 +42,21 @@ func (s *Server) Of(name string) *Namespace {
 		ns := NewNamespace(name)
 		s.namespaces[name] = ns
 		return ns
+	}
+}
+
+func (s *Server) OnConnect(ws *websocket.Conn) {
+	defer func() {
+		err := ws.Close()
+		if err != nil {
+			// do something
+		}
+	}()
+
+	client := NewClient(ws, s)
+
+	if client != nil {
+		client.Connect("/")
+		client.Listen()
 	}
 }

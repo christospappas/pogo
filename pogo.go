@@ -35,24 +35,7 @@ func Namespace(name string, fn func(ns *server.Namespace)) {
 func Listen() {
 	log.Println("[pogo] Listening on port 8080")
 
-	onConnected := func(ws *websocket.Conn) {
-		defer func() {
-			err := ws.Close()
-			if err != nil {
-				// do something
-			}
-		}()
-
-		client := server.NewClient(ws, defaultServer)
-
-		if client != nil {
-			client.Connect("/")
-			client.Listen()
-		}
-
-	}
-
-	http.Handle("/", websocket.Handler(onConnected))
+	http.Handle("/", websocket.Handler(defaultServer.OnConnect))
 
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
